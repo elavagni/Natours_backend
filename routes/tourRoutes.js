@@ -4,6 +4,8 @@ const { getAllTours, createTour } = require('./../controllers/tourController');
 
 const router = express.Router();
 
+router.param('id', tourController.checkID);
+
 //using functions with destructuring
 router
   .route('/')
@@ -12,7 +14,7 @@ router
 
 //using functions without destructuring
 router
-  .route(':id')
+  .route('/:id')
   .get(tourController.getTour)
   .patch(tourController.updateTour)
   .delete(tourController.deleteTour);
