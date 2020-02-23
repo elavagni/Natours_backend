@@ -7,8 +7,12 @@ const userRouter = require('./routes/userRoutes');
 const app = express();
 
 //1) MIDDLEWARES  -app.use indicates the usage of middleware
-app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
 app.use(express.json());
+app.use(express.static(`${__dirname}/public`));
 
 //The other of the middleware is really important, if the middleware if define after the routes,
 //it will not be executed, as the route handler will finish the request/response cycle

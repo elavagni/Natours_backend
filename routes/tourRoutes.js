@@ -1,6 +1,10 @@
 const express = require('express');
 const tourController = require('./../controllers/tourController');
-const { getAllTours, createTour } = require('./../controllers/tourController');
+const {
+  getAllTours,
+  createTour,
+  checkBody
+} = require('./../controllers/tourController');
 
 const router = express.Router();
 
@@ -10,7 +14,7 @@ router.param('id', tourController.checkID);
 router
   .route('/')
   .get(getAllTours)
-  .post(createTour);
+  .post(checkBody, createTour);
 
 //using functions without destructuring
 router
