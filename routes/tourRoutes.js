@@ -1,20 +1,16 @@
 const express = require('express');
 const tourController = require('./../controllers/tourController');
-const {
-  getAllTours,
-  createTour,
-  checkBody
-} = require('./../controllers/tourController');
+const { getAllTours, createTour } = require('./../controllers/tourController');
 
 const router = express.Router();
 
-router.param('id', tourController.checkID);
+//router.param('id', tourController.checkID);
 
 //using functions with destructuring
 router
   .route('/')
   .get(getAllTours)
-  .post(checkBody, createTour);
+  .post(createTour);
 
 //using functions without destructuring
 router
