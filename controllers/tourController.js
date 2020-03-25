@@ -1,4 +1,5 @@
 const Tour = require('./../models/tourModel');
+const APIFeatures = require('./../utils/apiFeatures');
 
 exports.aliasTopTours = async (req, res, next) => {
   req.query.limit = '5';
@@ -9,56 +10,13 @@ exports.aliasTopTours = async (req, res, next) => {
 
 exports.getAllTours = async (req, res) => {
   try {
-    console.log(req.query);
-    //BUILD THE QUERY
-    //1A) Filtering
-    const queryObj = { ...req.query };
-    const excludeFields = ['page', 'sort', 'limit', 'fields'];
-    excludeFields.forEach(el => delete queryObj[el]);
-
-    //1B Advanced filtering
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
-
-    //Filter using node syntax
-    let query = Tour.find(JSON.parse(queryStr));
-
-    //2) Sorting
-    if (req.query.sort) {
-      //When sorting by multiple properties, the sorting properties will be separated by comma in the query string
-      //for example (?sort=price,ratingsAverage) replace the comma for an empty space so that mongoose knows how
-      //to use its value
-      const sortBy = req.query.sort.split(',').join(' ');
-      query = query.sort(sortBy);
-    } else {
-      query = query.sort('-createdAt');
-    }
-
-    // 3) Field limiting
-    if (req.query.fields) {
-      const fields = req.query.fields.split(',').join(' ');
-      query = query.select(fields);
-    } else {
-      //By default exclude field limiting
-      query = query.select('-__v');
-    }
-
-    // 4) Pagination
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 100;
-    const skip = (page - 1) * limit;
-
-    query = query.skip(skip).limit(limit);
-
-    if (req.query.page) {
-      const numberOfTours = await Tour.countDocuments();
-      if (skip >= numberOfTours) {
-        throw new Error('This page does not exit');
-      }
-    }
-
-    //EXECUTE THE QUERY
-    const tours = await query;
+    // EXECUTE QUERY
+    const features = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const tours = await features.query;
 
     //Filter using mongoose syntax
     // const query = Tour.find()
