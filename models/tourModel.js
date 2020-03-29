@@ -88,7 +88,6 @@ tourSchema.pre('save', function(next) {
 // });
 
 //QUERY MIDDLEWARE
-
 //Add regular expression so that the middleware is executed for all commands that start with find (find, findOne,..)
 tourSchema.pre(/^find/, function(next) {
   //"this" represents the current query object
@@ -101,7 +100,16 @@ tourSchema.pre(/^find/, function(next) {
 
 tourSchema.post(/^find/, function(docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
-  console.log(docs);
+  next();
+});
+
+//AGGREGATION MIDDLEWARE
+tourSchema.pre('aggregate', function(next) {
+  //"this" represents the current aggregation object
+
+  //Add another stage at the beginning of the array
+  this.pipeline().unshift({ $match: { secretTour: { $eq: false } } });
+  console.log(this.pipeline());
   next();
 });
 
