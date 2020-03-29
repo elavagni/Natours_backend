@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -7,6 +8,7 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A tour must have a name'],
       unique: true
     },
+    slug: String,
     duration: {
       type: Number,
       required: [true, 'A tour must have a duration']
@@ -50,7 +52,11 @@ const tourSchema = new mongoose.Schema(
       type: Date,
       default: Date.now()
     },
-    startDates: [Date]
+    startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     toJSON: { virtuals: true },
@@ -62,6 +68,49 @@ const tourSchema = new mongoose.Schema(
 //their own 'this' keyword.  In this case 'this' will be pointing to the current document
 tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
+});
+
+//DOCUMENT MIDDLEWARE: runs before the .save() and .create() but not on .insertMany()
+tourSchema.pre('save', function(next) {
+  //this represents the document that is being process
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+//Leave this code as reference
+// tourSchema.pre('save', function(next) {
+//   console.log('Will save document soon...');
+//   next();
+// });
+// tourSchema.post('save', function(doc, next) {
+//   console.log(doc);
+//   next();
+// });
+
+//QUERY MIDDLEWARE
+//Add regular expression so that the middleware is executed for all commands that start with find (find, findOne,..)
+tourSchema.pre(/^find/, function(next) {
+  //"this" represents the current query object
+  this.find({ secretTour: { $eq: false } });
+
+  //Dynamically add property to object to know when the query started
+  this.start = Date.now();
+  next();
+});
+
+tourSchema.post(/^find/, function(docs, next) {
+  console.log(`Query took ${Date.now() - this.start} milliseconds!`);
+  next();
+});
+
+//AGGREGATION MIDDLEWARE
+tourSchema.pre('aggregate', function(next) {
+  //"this" represents the current aggregation object
+
+  //Add another stage at the beginning of the array
+  this.pipeline().unshift({ $match: { secretTour: { $eq: false } } });
+  console.log(this.pipeline());
+  next();
 });
 
 const Tour = mongoose.model('Tour', tourSchema);

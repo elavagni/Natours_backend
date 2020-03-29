@@ -137,10 +137,11 @@ exports.getTourStats = async (req, res) => {
       {
         //Use the name defined in the group above to reference the fields, do not use the name in the db
         $sort: { avgPrice: 1 }
-      },
-      {
-        $match: { _id: { $ne: 'EASY' } }
       }
+      //,
+      // {
+      //   $match: { _id: { $ne: 'EASY' } }
+      // }
     ]);
 
     res.status(200).json({
