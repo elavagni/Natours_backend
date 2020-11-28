@@ -14,14 +14,8 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 app.use(express.static(`${__dirname}/public`));
 
-//The other of the middleware is really important, if the middleware if define after the routes,
+//The order of the middleware is really important, if the middleware if defined after the routes,
 //it will not be executed, as the route handler will finish the request/response cycle
-app.use((req, res, next) => {
-  console.log('Hello from the middleware');
-  //Invoke next function passed as parameter
-  next();
-});
-
 app.use((req, res, next) => {
   res.requestTime = new Date().toISOString();
   next();
@@ -30,5 +24,14 @@ app.use((req, res, next) => {
 //3 ROUTES - mount the routes middlerware
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
+
+//If we reach this point, there isn't a route for the given URL
+//Run for all http verbs (get, post, put, etc )
+app.all('*', (req, res, next) => {
+  res.status(404).json({
+    status: 'fail',
+    message: `Can't find ${req.originalUrl} on this server!`
+  });
+});
 
 module.exports = app;
