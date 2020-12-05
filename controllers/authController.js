@@ -97,3 +97,19 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = freshUser;
   next();
 });
+
+// Since middlewares do not accept parameters, create a wrapper function
+// that will return the middleware, and would have access to parameters, in this case to the
+//roles
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    // The protect middleware adds the current user to req.user.role
+    // since that middleware always runs before this one, we can use it here
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You do not have permission to perform this action', 403)
+      );
+    }
+    next();
+  };
+};
