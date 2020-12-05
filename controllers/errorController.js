@@ -7,7 +7,6 @@ const handleCastErrorDB = error => {
 
 const handleDuplicateFieldsDB = error => {
   const value = error.errmsg.match(/(["'])(?:\\.|[^\\])*?\1/)[0];
-  console.log(value);
   const message = `Duplicate field value: ${value}.  Please use a different value`;
   return new AppError(message, 400);
 };
@@ -37,6 +36,7 @@ const sendErrorProd = (error, res) => {
 
     // Programming or other unknown error: don't leak error details
   } else {
+    // eslint-disable-next-line no-console
     console.error('ERROR', error);
 
     res.status(500).json({
@@ -45,6 +45,12 @@ const sendErrorProd = (error, res) => {
     });
   }
 };
+
+const handleJwtError = () =>
+  new AppError('Invalid token.  Please log in again!', 401);
+
+const handleJwtExpiredError = () =>
+  new AppError('Your token has expired. Please log in again!', 401);
 
 //By giving these four arguments to the following function, express will recognize it as error handling middleware
 module.exports = (error, req, res, next) => {
@@ -68,6 +74,13 @@ module.exports = (error, req, res, next) => {
       err = handleValidationErrorDB(err);
     }
 
+    if (err.name === 'JsonWebTokenError') {
+      err = handleJwtError(err);
+    }
+
+    if (err.name === 'TokenExpiredError') {
+      err = handleJwtExpiredError(err);
+    }
     sendErrorProd(err, res);
   }
 };

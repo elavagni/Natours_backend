@@ -1,5 +1,6 @@
 const express = require('express');
 const tourController = require('./../controllers/tourController');
+const authController = require('../controllers/authController');
 const { getAllTours, createTour } = require('./../controllers/tourController');
 
 const router = express.Router();
@@ -14,7 +15,7 @@ router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
 //using functions with destructuring
 router
   .route('/')
-  .get(getAllTours)
+  .get(authController.protect, getAllTours)
   .post(createTour);
 
 //using functions without destructuring
