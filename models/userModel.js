@@ -56,6 +56,16 @@ userSchema.pre('save', async function(next) {
   this.passwordConfirm = undefined;
 });
 
+userSchema.pre('save', async function(next) {
+  //Only run the function if the password was modified or if the document is not new
+  if (!this.isModified('password') || this.isNew) return next();
+
+  //Saving to the database could be slower than issueing the JWT, provide a 1 second window to make sure
+  //the passwordChangedAt date is not greater than the time when the JWT token was issued.  Otherwise the validation that checks
+  //if the user's password has been changed after the JWT token was issued could potentially failed.
+  this.passwordChangedAt = Date.now() - 1000;
+});
+
 userSchema.methods.correctPassword = async function(
   candidatePassword,
   userPassword
