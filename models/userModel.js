@@ -42,7 +42,12 @@ const userSchema = new mongoose.Schema({
   },
   passwordChangedAt: Date,
   passwordResetToken: String,
-  passwordResetExpires: Date
+  passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false
+  }
 });
 
 userSchema.pre('save', async function(next) {
@@ -64,6 +69,12 @@ userSchema.pre('save', async function(next) {
   //the passwordChangedAt date is not greater than the time when the JWT token was issued.  Otherwise the validation that checks
   //if the user's password has been changed after the JWT token was issued could potentially failed.
   this.passwordChangedAt = Date.now() - 1000;
+});
+
+//apply to all queries that start with find
+userSchema.pre(/^find/, function(next) {
+  this.find({ active: { $ne: false } });
+  next();
 });
 
 userSchema.methods.correctPassword = async function(
