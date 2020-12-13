@@ -119,6 +119,13 @@ tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
 });
 
+//Virtual populate, get the reviews from the Review collection
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id'
+});
+
 //DOCUMENT MIDDLEWARE: runs before the .save() and .create() but not on .insertMany()
 tourSchema.pre('save', function(next) {
   //this represents the document that is being process
@@ -152,6 +159,14 @@ tourSchema.pre(/^find/, function(next) {
 
   //Dynamically add property to object to know when the query started
   this.start = Date.now();
+  next();
+});
+
+tourSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt'
+  });
   next();
 });
 
