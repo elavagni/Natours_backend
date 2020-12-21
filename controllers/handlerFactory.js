@@ -85,6 +85,8 @@ exports.getAll = Model =>
       .sort()
       .limitFields()
       .paginate();
+    //explain can give you metrics about the query
+    //const documents = await features.query.explain();
     const documents = await features.query;
 
     //SEND RESPONSE

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 
@@ -112,6 +113,10 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true }
   }
 );
+
+//1 = ascending order, -1 = desceding order
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slugify: 1 });
 
 //Use regular function instead of arrow function, because we need access to 'this' keyword. Arrow functions do not get
 //their own 'this' keyword.  In this case 'this' will be pointing to the current document
