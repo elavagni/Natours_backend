@@ -1,3 +1,4 @@
+const AppError = require('../utils/appError');
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
@@ -91,6 +92,86 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       plan
+    }
+  });
+});
+
+//tours-within/:distance/center/:latlng/unit/:unit
+//tours-within/233/center/34.111745,-118.113491/unit/mi
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+
+  const [latitude, longitude] = latlng.split(',');
+
+  if (!latitude || !longitude) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat, lng',
+        400
+      )
+    );
+  }
+
+  //in orther to get the radiosu divide the distance by the radious of the earth
+  // eath radios is 3963.2 mi or 6578.1km
+  const radious = unit === 'mi' ? distance / 3963.2 : distance / 6578.1;
+
+  //coordinates often start with latitude first and longitude second, however for geoJson data is the
+  // other way around
+  const tours = await Tour.find({
+    startLocation: {
+      $geoWithin: { $centerSphere: [[longitude, latitude], radious] }
+    }
+  });
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: tours
+    }
+  });
+});
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [latitude, longitude] = latlng.split(',');
+
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+
+  if (!latitude || !longitude) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat, lng',
+        400
+      )
+    );
+  }
+  const distances = await Tour.aggregate([
+    {
+      $geoNear: {
+        //Since we only have one geoInex in the collection that one would be use by default for the aggregation
+        near: {
+          type: 'Point',
+          //Multiply by one to convert them into numbers
+          coordinates: [longitude * 1, latitude * 1]
+        },
+        //Field to be created with the result of the aggregation (calculated disntances)
+        distanceField: 'distance',
+        distanceMultiplier: multiplier
+      }
+    },
+    {
+      $project: {
+        distance: 1,
+        name: 1
+      }
+    }
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances
     }
   });
 });

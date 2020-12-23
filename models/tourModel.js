@@ -32,7 +32,8 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
-      max: [5, 'Rating must be below or eqaul to 5.0']
+      max: [5, 'Rating must be below or eqaul to 5.0'],
+      set: val => Math.round(val * 10) / 10
     },
     ratingsQuantity: {
       type: Number,
@@ -117,6 +118,7 @@ const tourSchema = new mongoose.Schema(
 //1 = ascending order, -1 = desceding order
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slugify: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
 
 //Use regular function instead of arrow function, because we need access to 'this' keyword. Arrow functions do not get
 //their own 'this' keyword.  In this case 'this' will be pointing to the current document
@@ -184,14 +186,14 @@ tourSchema.pre(/^find/, function(next) {
 });
 
 //AGGREGATION MIDDLEWARE
-tourSchema.pre('aggregate', function(next) {
-  //"this" represents the current aggregation object
+// tourSchema.pre('aggregate', function(next) {
+//   //"this" represents the current aggregation object
 
-  //Add another stage at the beginning of the array
-  this.pipeline().unshift({ $match: { secretTour: { $eq: false } } });
-  console.log(this.pipeline());
-  next();
-});
+//   //Add another stage at the beginning of the array
+//   this.pipeline().unshift({ $match: { secretTour: { $eq: false } } });
+//   console.log(this.pipeline());
+//   next();
+// });
 
 tourSchema.post(/^find/, function(docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
