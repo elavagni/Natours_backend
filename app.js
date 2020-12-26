@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -11,8 +12,15 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
+
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, './views'));
+
+// Serving static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 //1) GLOBAL MIDDLEWARES
 
@@ -63,9 +71,6 @@ app.use(
   })
 );
 
-// Serving static files
-app.use(express.static(`${__dirname}/public`));
-
 //The order of the middleware is really important, if the middleware if defined after the routes,
 //it will not be executed, as the route handler will finish the request/response cycle
 //Test middleware
@@ -75,6 +80,7 @@ app.use((req, res, next) => {
 });
 
 //3 ROUTES - mount the routes middlerware
+app.use('/', viewRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/reviews', reviewRouter);
