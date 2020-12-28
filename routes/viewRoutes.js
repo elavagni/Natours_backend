@@ -11,6 +11,6 @@ router.get('/', (req, res) => {
 });
 
 router.get('/overview', viewsController.getOverview);
-router.get('/tour', viewsController.getTour);
+router.get('/tour/:slug', viewsController.getTour);
 
 module.exports = router;
