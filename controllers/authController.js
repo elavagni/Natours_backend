@@ -115,6 +115,37 @@ exports.protect = catchAsync(async (req, res, next) => {
   next();
 });
 
+//Only for rendered pages, there should be no errors
+exports.isLoggedIn = catchAsync(async (req, res, next) => {
+  if (req.cookies.jwt) {
+    // Verify token
+    // use node promisify to convert the function into a function that will return a promise,
+    // then await the promise by providing the parameters of the function
+    const decoded = await promisify(jwt.verify)(
+      req.cookies.jwt,
+      process.env.JWT_SECRET
+    );
+
+    // Check if user still exists
+    const freshUser = await User.findById(decoded.id);
+
+    if (!freshUser) {
+      return next();
+    }
+
+    // Check if user changed password after the token was issued
+    if (freshUser.changedPasswordAfter(decoded.iat)) {
+      return next();
+    }
+
+    // There is a logged in user, make it visible to the pub templates
+    res.locals.user = freshUser;
+    return next();
+  }
+  //There is no cookie, call next middleware
+  return next();
+});
+
 // Since middlewares do not accept parameters, create a wrapper function
 // that will return the middleware, and would have access to parameters, in this case to the
 //roles
