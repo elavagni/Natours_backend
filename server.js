@@ -1,9 +1,11 @@
+/* eslint-disable no-console */
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 
-process.on('uncaughtException', error => {  
+process.on('uncaughtException', error => {
   console.log('Uncaught Exception! Shutting down...');
   console.log(`${error.name}, ${error.message}`);
+  console.log(`${error.stack}`);
   process.exit(1);
 });
 
@@ -29,10 +31,10 @@ const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
 
-process.on('unhandledRejection', error => {  
+process.on('unhandledRejection', error => {
   console.log('Unhandled Rejection! Shutting down...');
   console.log(`${error.name}, ${error.message}`);
   server.close(() => {
     process.exit(1);
-  });  
+  });
 });
