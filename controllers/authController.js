@@ -68,6 +68,16 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+exports.logout = (req, res) => {
+  //add a random string to overwrite the value of the auth cookie (the jwt token)
+  res.cookie('jwt', 'loggedout', {
+    //set the cookie to expire in 10 seconds
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true
+  });
+  res.status(200).json({ status: 'success' });
+};
+
 exports.protect = catchAsync(async (req, res, next) => {
   // Get JWT token
   let token;
@@ -118,32 +128,36 @@ exports.protect = catchAsync(async (req, res, next) => {
 //Only for rendered pages, there should be no errors
 exports.isLoggedIn = catchAsync(async (req, res, next) => {
   if (req.cookies.jwt) {
-    // Verify token
-    // use node promisify to convert the function into a function that will return a promise,
-    // then await the promise by providing the parameters of the function
-    const decoded = await promisify(jwt.verify)(
-      req.cookies.jwt,
-      process.env.JWT_SECRET
-    );
+    try {
+      // Verify token
+      // use node promisify to convert the function into a function that will return a promise,
+      // then await the promise by providing the parameters of the function
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
 
-    // Check if user still exists
-    const freshUser = await User.findById(decoded.id);
+      // Check if user still exists
+      const freshUser = await User.findById(decoded.id);
 
-    if (!freshUser) {
+      if (!freshUser) {
+        return next();
+      }
+
+      // Check if user changed password after the token was issued
+      if (freshUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      // There is a logged in user, make it visible to the pub templates
+      res.locals.user = freshUser;
+      return next();
+    } catch (error) {
       return next();
     }
-
-    // Check if user changed password after the token was issued
-    if (freshUser.changedPasswordAfter(decoded.iat)) {
-      return next();
-    }
-
-    // There is a logged in user, make it visible to the pub templates
-    res.locals.user = freshUser;
-    return next();
   }
   //There is no cookie, call next middleware
-  return next();
+  next();
 });
 
 // Since middlewares do not accept parameters, create a wrapper function
