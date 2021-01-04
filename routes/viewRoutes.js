@@ -4,11 +4,10 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
-//Always validate is the user is logged in or not
-router.use(authController.isLoggedIn);
-
-router.get('/', viewsController.getOverview);
-router.get('/login', viewsController.getLoginForm);
-router.get('/tour/:slug', viewsController.getTour);
+//If the route is not protected, validate is the user is logged in or not
+router.get('/', authController.isLoggedIn, viewsController.getOverview);
+router.get('/login', authController.isLoggedIn, viewsController.getLoginForm);
+router.get('/tour/:slug', authController.isLoggedIn, viewsController.getTour);
+router.get('/me', authController.protect, viewsController.getAccount);
 
 module.exports = router;

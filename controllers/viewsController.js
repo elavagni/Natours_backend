@@ -36,3 +36,9 @@ exports.getTour = catchAsync(async (req, res, next) => {
     tour
   });
 });
+
+exports.getAccount = (req, res) => {
+  res.status(200).render('account', {
+    title: 'Log into your account'
+  });
+};
