@@ -17,12 +17,8 @@ exports.getLoginForm = (req, res) => {
   });
 };
 
-exports.getTour = catchAsync(async (req, res) => {
+exports.getTour = catchAsync(async (req, res, next) => {
   const { slug } = req.params;
-
-  if (!slug) {
-    return new AppError('Please provide a tour slug', 400);
-  }
 
   const tour = await Tour.findOne({
     slug: slug
@@ -31,8 +27,8 @@ exports.getTour = catchAsync(async (req, res) => {
     fields: 'review rating user'
   });
 
-  if (!slug) {
-    return new AppError('The tour with the slug provided does not exist', 404);
+  if (!tour) {
+    return next(new AppError('There is no tour with that name', 404));
   }
 
   res.status(200).render('tour', {
