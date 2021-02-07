@@ -35,6 +35,7 @@ const importData = async () => {
     await User.create(users, { validateBeforeSave: false });
     await Review.create(reviews);
     console.log('Data sucessfully loaded!');
+    console.log(`Don't forget to enable the logic to encrypt passwords!!!`);
     process.exit();
   } catch (err) {
     console.log(err);
