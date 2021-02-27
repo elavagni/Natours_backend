@@ -8,5 +8,20 @@ Node.js, Express and MongoDB
 * SendGrid
 * Stripe
 
+#Hosting platform 
+
+* Heroku
+
+#Link to deployed app
+
+* https://natours-xyz.herokuapp.com
+
+#TODO
+
+* Sign up
+* Create responsive design
+* Add restriction for creating reviews (verify the user has taken the tour)
+
+
 
 
