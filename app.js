@@ -8,6 +8,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const cors = require('cors');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
@@ -27,10 +28,26 @@ app.set('views', path.join(__dirname, './views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 //1) GLOBAL MIDDLEWARES
+//implement cors, allow all origins (Access-Control-Allow-Origin *)
+app.use(cors());
+
+//Example to only allow a specific origin
+/*app.use(
+  cors({
+    origin: 'https://www.natours.com'
+  })
+);
+*/
+
+// Allow cors preflight phase for all complex requests to our API (to patch or delete)
+app.options('*', cors());
+
+// Allow cors preflight to an specific route
+// app.options('/api/v1/tours', cors());
 
 // Set Security HTTP headers
 //enable helmet security later
-//app.use(helmet());
+app.use(helmet());
 
 // Development logging
 // app.use indicates the usage of middleware
