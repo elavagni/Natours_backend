@@ -15,6 +15,7 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const bookingRouter = require('./routes/bookingRoutes');
+const bookingController = require('./controllers/bookingController');
 const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
@@ -47,7 +48,7 @@ app.options('*', cors());
 
 // Set Security HTTP headers
 //enable helmet security later
-app.use(helmet());
+//app.use(helmet());
 
 // Development logging
 // app.use indicates the usage of middleware
@@ -65,6 +66,15 @@ const limiter = rateLimit({
 });
 
 app.use('/api', limiter);
+
+//This webhook is handle here instead of the booking router because the webhookCheckout
+//handler function will call a Stripe function that requires the body in a raw form (stream instead of json)
+//all requests handle by the routers are going to be parse to json due the use of the express.json middleware
+app.post(
+  '/webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  bookingController.webhookCheckout
+);
 
 // Body parser, reading data from the body into req.body
 app.use(
