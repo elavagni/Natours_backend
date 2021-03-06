@@ -8,6 +8,9 @@ Node.js, Express and MongoDB
 * SendGrid
 * Stripe
 
+##Online API Documentation
+https://documenter.getpostman.com/view/13962000/Tz5jfLnB
+
 #Hosting platform 
 
 * Heroku
